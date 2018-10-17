@@ -1295,7 +1295,8 @@ class GoogleCalendarInterface:
         return self._iterate_events(
                 self.now, eventList, yearDate=True, work=work)
 
-    def Remind(self, minutes=10, command=None, use_reminders=False):
+    def Remind(self, minutes=10, command=None, use_reminders=False,
+               printJson=False):
         """Check for events between now and now+minutes.  If use_reminders then
            only remind if now >= event['start'] - reminder"""
 
@@ -1309,6 +1310,7 @@ class GoogleCalendarInterface:
         eventList = self._search_for_events(start, end, None)
 
         message = ''
+        eventJsonList = []
 
         for event in eventList:
 
@@ -1325,18 +1327,32 @@ class GoogleCalendarInterface:
                     # don't remind if all reminders haven't arrived yet
                     continue
 
-            if self.options['military']:
-                tmpTimeStr = event['s'].strftime('%H:%M')
-            else:
-                tmpTimeStr = \
-                    event['s'].strftime('%I:%M').lstrip('0') + \
-                    event['s'].strftime('%p').lower()
+            eventJson = {
+                'start': event.get('start', {}).get('dateTime'),
+                'end': event.get('end', {}).get('dateTime'),
+                'title': self._valid_title(event).strip(),
+                'url': event.get('htmlLink'),
+                'location': event.get('location')
+            }
 
-            message += '%s  %s\n' % \
-                       (tmpTimeStr, self._valid_title(event).strip())
+            eventJsonList.append(eventJson)
 
-        if not message:
+        if not eventJsonList:
             return
+
+        if not printJson:
+            for eventJson in eventJsonList:
+                if self.options['military']:
+                    startTimeStr = parse(eventJson['start']).strftime('%H:%M')
+                else:
+                    startTimeStr = \
+                        parse(eventJson['start']).strftime('%I:%M') \
+                        .lstrip('0') + \
+                        parse(eventJson['start']).strftime('%p').lower()
+                message += '{}  {}\n'.format(startTimeStr,
+                                             eventJson['title'])
+        else:
+            message = json.dumps(eventJsonList)
 
         cmd = shlex.split(command)
 
@@ -1687,7 +1703,7 @@ def main():
         elif FLAGS.command == 'remind':
             gcal.Remind(
                     FLAGS.minutes, FLAGS.cmd,
-                    use_reminders=FLAGS.use_reminders)
+                    use_reminders=FLAGS.use_reminders, printJson=FLAGS.json)
 
         elif FLAGS.command == 'import':
             gcal.ImportICS(

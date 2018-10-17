@@ -284,5 +284,12 @@ def get_argument_parser():
     remind.add_argument(
             "--use_reminders", action="store_true",
             help="Honour the remind time when running remind command")
+    remind.add_argument(
+            "--json", action="store_true",
+            help="Outpus the reminder as a json object \
+            rather than a plain text string")
+    remind.add_argument(
+            "--military", action="store_true", default=False,
+            help="Use 24 hour display")
 
     return parser
