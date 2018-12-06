@@ -63,6 +63,9 @@ def get_output_parser(parents=[]):
             "--nostarted", action="store_true", dest="ignore_started",
             default=False, help="Hide events that have started")
     output_parser.add_argument(
+            "--noended", action="store_true", dest="ignore_ended",
+            default=False, help="Hide events that have ended")
+    output_parser.add_argument(
             "--nodeclined", action="store_true", dest="ignore_declined",
             default=False, help="Hide events that have been declined")
     output_parser.add_argument(

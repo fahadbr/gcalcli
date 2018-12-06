@@ -1021,6 +1021,8 @@ class GoogleCalendarInterface:
         for event in eventList:
             if self.options['ignore_started'] and (event['s'] < self.now):
                 continue
+            if self.options['ignore_ended'] and (event['e'] < self.now):
+                continue
             if self.options['ignore_declined'] and self._DeclinedEvent(event):
                 continue
 
@@ -1360,9 +1362,7 @@ class GoogleCalendarInterface:
             if a == '%s':
                 cmd[i] = message
 
-        pid = os.fork()
-        if not pid:
-            os.execvp(cmd[0], cmd)
+        os.execvp(cmd[0], cmd)
 
     def ImportICS(self, verbose=False, dump=False, reminders=None,
                   icsFile=None):
